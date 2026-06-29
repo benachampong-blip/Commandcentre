@@ -109,13 +109,6 @@ textarea.dedit{width:100%;background:#161b27;border:1px solid #3b82f6;border-rad
 .ssec{margin-bottom:24px}
 .ssl{font-size:9px;letter-spacing:2px;color:#6b7280;text-transform:uppercase;margin-bottom:10px;font-weight:600}
 .dbtn{background:#ef444411;border:1px solid #ef444433;border-radius:8px;color:#ef4444;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;width:100%}
-.sbox{background:#0d1117;border:1px solid #10b98133;border-left:3px solid #10b981;border-radius:12px;padding:16px 18px;margin-bottom:16px}
-.sbl{font-size:9px;letter-spacing:2px;color:#10b981;text-transform:uppercase;margin-bottom:8px;font-weight:600}
-.sbt{font-size:12px;color:#94a3b8;margin-bottom:12px;line-height:1.6}
-.ski{width:100%;background:#161b27;border:1px solid #2d3748;border-radius:8px;color:#e8e8f0;padding:10px 13px;font-size:13px;font-family:monospace;outline:none;margin-bottom:10px;-webkit-appearance:none}
-.ski:focus{border-color:#10b981}
-.skbtn{background:#10b981;border:none;border-radius:8px;color:#000;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
-.kstat{font-size:11px;color:#10b981;margin-left:10px}
 .banner{background:linear-gradient(135deg,#0d1117,#161b27);border:1px solid #3b82f633;border-radius:12px;padding:20px;margin-bottom:16px;text-align:center}
 </style>
 </head>
@@ -132,7 +125,6 @@ textarea.dedit{width:100%;background:#161b27;border:1px solid #3b82f6;border-rad
   <div id="abar"></div>
   <div class="pbwrap"><div class="pb" id="pb" style="width:0%"></div></div>
 </div>
-
 <div class="tabs">
   <button class="tbtn active" onclick="go('today')">Today</button>
   <button class="tbtn" onclick="go('emails')" id="etab">📧 Emails</button>
@@ -142,7 +134,6 @@ textarea.dedit{width:100%;background:#161b27;border:1px solid #3b82f6;border-rad
   <button class="tbtn" onclick="go('briefing')">☀️ Briefing</button>
   <button class="tbtn" onclick="go('settings')">⚙️ Setup</button>
 </div>
-
 <div class="content">
   <div id="tab-today"></div>
   <div id="tab-emails" style="display:none"></div>
@@ -152,12 +143,10 @@ textarea.dedit{width:100%;background:#161b27;border:1px solid #3b82f6;border-rad
   <div id="tab-briefing" style="display:none"></div>
   <div id="tab-settings" style="display:none"></div>
 </div>
-
 <script>
 const CYCLE_START=new Date("2026-06-27");
 const CYCLE_DAYS=56;
 const TABS=["today","emails","tasks","markets","gospel","briefing","settings"];
-
 const DEFAULT_TASKS=[
   {id:1,title:"Issue EICR & Remedial Quote",detail:"40 Grace Church Street",due:"2026-06-29",cat:"business",done:false},
   {id:2,title:"Email Paul — Chase Scaffold",detail:"10SC project",due:"2026-06-29",cat:"business",done:false},
@@ -168,7 +157,6 @@ const DEFAULT_TASKS=[
   {id:7,title:"Find New Electrical Engineer",detail:"Post roles on LinkedIn, Indeed, Totaljobs",due:"2026-07-03",cat:"business",done:false},
   {id:8,title:"Get Laptop Screen Fixed",detail:"Book repair or warranty claim",due:"2026-07-03",cat:"admin",done:false},
 ];
-
 const TR={
   1:{label:"Push — Chest/Shoulders/Triceps",type:"heavy",emoji:"🏋️",sub:"7am fasted · Progressive overload"},
   2:{label:"Light Upper + Sauna/Steam + JJ",type:"light",emoji:"🥋",sub:"7am fasted · Accessory work · Jiu Jitsu 7pm"},
@@ -178,7 +166,6 @@ const TR={
   6:{label:"Golf ⛳",type:"active",emoji:"⛳",sub:"Active recovery · Easy pace"},
   0:{label:"Rest / Padel",type:"rest",emoji:"😴",sub:"Rest or padel · Recovery day"},
 };
-
 let tasks=[],emails=[],draftStates={};
 let emailsLoading=false,emailsLoaded=false;
 let outlookToken=null,outlookTokenExpiry=null;
@@ -186,13 +173,6 @@ let marketData=null,marketLoading=false,marketLoaded=false;
 let gospelData=null,gospelLoading=false,gospelLoaded=false;
 let briefingText="",briefingLoading=false,briefingLoaded=false;
 let showAdd=false,completing=null,curTab="today";
-
-function getCookie(name){
-  const cookies=Object.fromEntries(document.cookie.split(';').map(c=>{
-    const [k,...v]=c.trim().split('=');return[k.trim(),v.join('=')];
-  }));
-  return cookies[name]||null;
-}
 
 function load(){
   try{
@@ -205,28 +185,33 @@ function load(){
     if(m&&md===today){try{marketData=JSON.parse(m);marketLoaded=true;}catch{}}
     const g=localStorage.getItem("ben_g");const gd=localStorage.getItem("ben_gd");
     if(g&&gd===today){try{gospelData=JSON.parse(g);gospelLoaded=true;}catch{}}
-    // Load Outlook token from localStorage
     const ot=localStorage.getItem("ben_outlook_token");
     const ote=localStorage.getItem("ben_outlook_expiry");
     if(ot&&ote&&Date.now()<parseInt(ote)){outlookToken=ot;outlookTokenExpiry=parseInt(ote);}
-    // Check for Outlook auth callback in URL
+    // Handle auth callback — read base64 payload from URL
     const params=new URLSearchParams(window.location.search);
     if(params.get("outlook_auth")==="success"){
-      // Read token from cookie set by auth-callback
-      const at=getCookie('outlook_token');
-      const expiry=getCookie('outlook_expiry');
-      if(at){
-        outlookToken=at;
-        outlookTokenExpiry=expiry?parseInt(expiry):Date.now()+3600000;
-        localStorage.setItem("ben_outlook_token",at);
-        localStorage.setItem("ben_outlook_expiry",outlookTokenExpiry.toString());
-      }
+      try{
+        const raw=params.get("p");
+        if(raw){
+          const decoded=JSON.parse(atob(decodeURIComponent(raw)));
+          if(decoded.t){
+            outlookToken=decoded.t;
+            outlookTokenExpiry=decoded.e||Date.now()+3600000;
+            localStorage.setItem("ben_outlook_token",outlookToken);
+            localStorage.setItem("ben_outlook_expiry",outlookTokenExpiry.toString());
+          }
+        }
+      }catch(e){console.error("Token parse error",e);}
+      window.history.replaceState({},"","/");
+    }
+    if(params.get("auth_error")){
+      console.error("Auth error:",params.get("auth_error"));
       window.history.replaceState({},"","/");
     }
   }catch{tasks=[...DEFAULT_TASKS];}
 }
 function save(){try{localStorage.setItem("ben_t6",JSON.stringify(tasks));}catch{}}
-
 const iso=()=>new Date().toISOString().split("T")[0];
 const dow=()=>new Date().getDay();
 function cweek(){const d=Math.floor((new Date()-CYCLE_START)/86400000);return Math.max(1,Math.min(8,Math.floor(d/7)+1));}
@@ -241,66 +226,39 @@ const OD=()=>tasks.filter(t=>!t.done&&t.due<iso());
 const TD=()=>tasks.filter(t=>!t.done&&t.due===iso());
 const UP=()=>tasks.filter(t=>!t.done&&t.due>iso());
 const DN=()=>tasks.filter(t=>t.done);
-function fd(iso){return new Date(iso+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});}
+function fd(i){return new Date(i+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});}
 function dod(due){return Math.floor((new Date()-new Date(due))/86400000);}
-
 async function ai(prompt){
-  const res=await fetch("/api/ai",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({prompt})
-  });
+  const res=await fetch("/api/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
   if(!res.ok){const e=await res.json();throw new Error(e.error||"Server error");}
-  const data=await res.json();
-  return data.text||"";
+  const data=await res.json();return data.text||"";
 }
-
-function parseJSON(text){
-  const clean=text.replace(/```json|```/g,"").trim();
-  return JSON.parse(clean);
-}
+function parseJSON(text){return JSON.parse(text.replace(/```json|```/g,"").trim());}
 
 function rToday(){
   const tr=TR[dow()],pp=peps(),od=OD(),td=TD();
-  let h=`
-    <div class="card blue"><div class="clabel">Today's Training</div>
-      <div class="ttitle">${tr.emoji} ${tr.label}</div>
-      <div class="tsub">${tr.sub}</div></div>
-    <div class="card green"><div class="clabel">Peptide Protocol — Week ${cweek()}</div>
-      <div class="pgrid">
-        <div class="pcell"><div class="plabel">MOTS-c</div><div class="pdose ${pp.motsc==="—"?"off":"on"}">${pp.motsc}</div></div>
-        <div class="pcell"><div class="plabel">GHK-Cu</div><div class="pdose ${pp.ghkcu==="—"?"off":"on"}">${pp.ghkcu}</div></div>
-        <div class="pcell"><div class="plabel">NAD+</div><div class="pdose ${pp.nad==="—"?"off":"on"}">${pp.nad}</div></div>
-      </div>
-      <div class="pnote">${pp.note}</div></div>`;
+  let h=`<div class="card blue"><div class="clabel">Today's Training</div><div class="ttitle">${tr.emoji} ${tr.label}</div><div class="tsub">${tr.sub}</div></div>
+  <div class="card green"><div class="clabel">Peptide Protocol — Week ${cweek()}</div>
+    <div class="pgrid">
+      <div class="pcell"><div class="plabel">MOTS-c</div><div class="pdose ${pp.motsc==="—"?"off":"on"}">${pp.motsc}</div></div>
+      <div class="pcell"><div class="plabel">GHK-Cu</div><div class="pdose ${pp.ghkcu==="—"?"off":"on"}">${pp.ghkcu}</div></div>
+      <div class="pcell"><div class="plabel">NAD+</div><div class="pdose ${pp.nad==="—"?"off":"on"}">${pp.nad}</div></div>
+    </div><div class="pnote">${pp.note}</div></div>`;
   if(od.length)h+=`<div class="slabel" style="color:#ef4444">⚠️ Overdue</div><div class="card red" style="padding:4px 16px">${od.map(trow).join("")}</div>`;
   if(td.length)h+=`<div class="slabel" style="color:#f59e0b">Due Today</div><div class="card amber" style="padding:4px 16px">${td.map(trow).join("")}</div>`;
   if(!od.length&&!td.length)h+=`<div class="es">✅ No tasks due today</div>`;
   document.getElementById("tab-today").innerHTML=h;
 }
-
 function trow(t){
   const od=!t.done&&t.due<iso(),c=completing===t.id;
-  const st=t.done?(t.doneAt?`<span class="tag dt">✓ ${fd(t.doneAt.split("T")[0])}</span>`:"")
-    :od?`<span class="tag overdue">${dod(t.due)}d overdue</span>`
-    :`<span class="tag dt">Due ${fd(t.due)}</span>`;
-  return `<div class="trow${c?" comp":""}" id="tr-${t.id}">
-    <button class="tchk${t.done?" dn":od?" od":""}" onclick="tick(${t.id})">${t.done?"✓":""}</button>
-    <div style="flex:1;min-width:0">
-      <div class="ttsk${t.done?" dn":od?" od":""}">${t.title}</div>
-      ${t.detail?`<div class="tdet">${t.detail}</div>`:""}
-      <div class="ttags"><span class="tag ${t.cat}">${t.cat}</span>${st}</div>
-    </div></div>`;
+  const st=t.done?(t.doneAt?`<span class="tag dt">✓ ${fd(t.doneAt.split("T")[0])}</span>`:""):od?`<span class="tag overdue">${dod(t.due)}d overdue</span>`:`<span class="tag dt">Due ${fd(t.due)}</span>`;
+  return `<div class="trow${c?" comp":""}" id="tr-${t.id}"><button class="tchk${t.done?" dn":od?" od":""}" onclick="tick(${t.id})">${t.done?"✓":""}</button>
+  <div style="flex:1;min-width:0"><div class="ttsk${t.done?" dn":od?" od":""}">${t.title}</div>${t.detail?`<div class="tdet">${t.detail}</div>`:""}<div class="ttags"><span class="tag ${t.cat}">${t.cat}</span>${st}</div></div></div>`;
 }
-
 function rTasks(){
   const od=OD(),td=TD(),up=UP(),dn=DN();
-  let h=`<div class="th"><div class="tc">${up.length} upcoming · ${od.length} overdue · ${dn.length} done</div>
-    <button class="abtn" onclick="toggleAdd()">+ Add</button></div>`;
-  if(showAdd)h+=`<div class="aform">
-    <input class="finput" id="nt" placeholder="Task description..." onkeydown="if(event.key==='Enter')addTask()">
-    <div class="frow"><input class="finput di" type="date" id="nd" value="${iso()}">
-    <button class="sbtn" onclick="addTask()">Save</button></div></div>`;
+  let h=`<div class="th"><div class="tc">${up.length} upcoming · ${od.length} overdue · ${dn.length} done</div><button class="abtn" onclick="toggleAdd()">+ Add</button></div>`;
+  if(showAdd)h+=`<div class="aform"><input class="finput" id="nt" placeholder="Task description..." onkeydown="if(event.key==='Enter')addTask()"><div class="frow"><input class="finput di" type="date" id="nd" value="${iso()}"><button class="sbtn" onclick="addTask()">Save</button></div></div>`;
   if(od.length)h+=`<div class="slabel" style="color:#ef4444">⚠️ Overdue</div><div class="card red" style="padding:4px 16px">${od.map(trow).join("")}</div>`;
   if(td.length)h+=`<div class="slabel" style="color:#f59e0b">Due Today</div><div class="card amber" style="padding:4px 16px">${td.map(trow).join("")}</div>`;
   if(up.length)h+=`<div class="slabel" style="color:#6b7280">Upcoming</div><div class="card" style="padding:4px 16px">${up.map(trow).join("")}</div>`;
@@ -309,148 +267,82 @@ function rTasks(){
   document.getElementById("tab-tasks").innerHTML=h;
   if(showAdd)setTimeout(()=>document.getElementById("nt")?.focus(),100);
 }
-
 function rEmails(){
   const el=document.getElementById("tab-emails");
   if(!outlookToken){
-    el.innerHTML=`<div class="cw">
-      <div class="ci">📧</div>
-      <div class="ct">Connect Your Outlook</div>
+    el.innerHTML=`<div class="cw"><div class="ci">📧</div><div class="ct">Connect Your Outlook</div>
       <div class="cs">Sign in with your Leiach Microsoft account to scan your real emails and send replies directly from this app.</div>
       <button class="gbtn" onclick="connectOutlook()">🔗 Connect Outlook</button>
-      <div style="font-size:11px;color:#6b7280;margin-top:8px">ben.achampong@leiach.co.uk</div>
-    </div>`;return;
+      <div style="font-size:11px;color:#6b7280;margin-top:8px">ben.achampong@leiach.co.uk</div></div>`;return;
   }
   if(emailsLoading){el.innerHTML=lhtml("📧","Scanning your Outlook inbox...");return;}
   if(!emailsLoaded){
-    el.innerHTML=`<div class="cw">
-      <div class="ci">📬</div>
-      <div class="ct">Outlook Connected ✅</div>
+    el.innerHTML=`<div class="cw"><div class="ci">📬</div><div class="ct">Outlook Connected ✅</div>
       <div class="cs">Scan your real inbox for important emails. No marketing — business only.</div>
       <button class="gbtn" onclick="scanEmails()">Scan Inbox Now</button>
-      <button class="actbtn" style="margin-top:10px" onclick="disconnectOutlook()">Disconnect</button>
-    </div>`;return;
+      <button class="actbtn" style="margin-top:10px" onclick="disconnectOutlook()">Disconnect</button></div>`;return;
   }
-  let h=`<div class="th">
-    <div class="tc">${emails.length} email${emails.length!==1?"s":""} from your Outlook inbox</div>
-    <button class="actbtn" onclick="scanEmails()">↻ Rescan</button></div>`;
+  let h=`<div class="th"><div class="tc">${emails.length} email${emails.length!==1?"s":""} from your Outlook inbox</div><button class="actbtn" onclick="scanEmails()">↻ Rescan</button></div>`;
   if(!emails.length)h+=`<div class="es">✅ Inbox clear — no important emails</div>`;
   emails.forEach((e,i)=>{
     const ds=draftStates[i]||{};
     h+=`<div class="ecard">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span class="esrc outlook">Outlook</span>
-        <span style="font-size:10px;color:#6b7280">${e.time} · ${e.date}</span>
-      </div>
-      <div class="efrom">${e.from}${!e.isRead?' <span class="epri high" style="margin-left:6px">Unread</span>':''}</div>
-      <div class="esubj">${e.subject}</div>
-      <div class="esum">${e.preview}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="esrc outlook">Outlook</span><span style="font-size:10px;color:#6b7280">${e.time} · ${e.date}</span></div>
+      <div class="efrom">${e.from}${!e.isRead?' <span class="epri high">Unread</span>':''}</div>
+      <div class="esubj">${e.subject}</div><div class="esum">${e.preview}</div>
       <div class="brow">
         ${!ds.draft&&!ds.loading?`<button class="actbtn pr" onclick="draftReply(${i})">✏️ Draft Reply</button>`:""}
-        ${ds.draft&&!ds.editing?`
-          <button class="actbtn pr" onclick="editD(${i})">✏️ Edit</button>
-          <button class="actbtn sc" onclick="sendReply(${i})">📤 Send Reply</button>`:""}
+        ${ds.draft&&!ds.editing?`<button class="actbtn pr" onclick="editD(${i})">✏️ Edit</button><button class="actbtn sc" onclick="sendReply(${i})">📤 Send Reply</button>`:""}
       </div>
       ${ds.loading?`<div style="font-size:12px;color:#6b7280;margin-top:10px;padding:10px;background:#161b27;border-radius:8px;animation:pulse 1.5s infinite">✍️ Drafting reply...</div>`:""}
       ${ds.draft&&!ds.loading&&!ds.editing?`<div class="darea">${ds.draft}</div>`:""}
-      ${ds.editing?`<textarea class="dedit" id="de-${i}">${ds.draft}</textarea>
-        <div class="brow">
-          <button class="sbtn" onclick="saveD(${i})">✅ Save</button>
-          <button class="actbtn" onclick="cancelD(${i})">Cancel</button>
-          <button class="actbtn sc" onclick="sendReply(${i})">📤 Send Reply</button>
-        </div>`:""}
-      ${ds.sent?`<div style="font-size:12px;color:#10b981;margin-top:8px">✅ Reply sent successfully</div>`:""}
+      ${ds.editing?`<textarea class="dedit" id="de-${i}">${ds.draft}</textarea><div class="brow"><button class="sbtn" onclick="saveD(${i})">✅ Save</button><button class="actbtn" onclick="cancelD(${i})">Cancel</button><button class="actbtn sc" onclick="sendReply(${i})">📤 Send</button></div>`:""}
+      ${ds.sent?`<div style="font-size:12px;color:#10b981;margin-top:8px">✅ Reply sent</div>`:""}
     </div>`;
   });
   el.innerHTML=h;
 }
-
 function rMarkets(){
   const el=document.getElementById("tab-markets");
   if(marketLoading){el.innerHTML=lhtml("📈","Analysing opportunities...");return;}
-  if(!marketLoaded){
-    el.innerHTML=`<div class="cw"><div class="ci">📈</div><div class="ct">Short-Term Opportunities</div>
-      <div class="cs">Budget: £1,000 per position · UK & US stocks<br>⚠️ Research only — not financial advice</div>
-      <button class="gbtn" onclick="loadMarkets()">Get Today's Opportunities</button></div>`;return;
-  }
-  let h=`<div class="card red" style="margin-bottom:14px">
-    <div style="font-size:10px;color:#ef4444;font-weight:700;margin-bottom:4px">⚠️ DISCLAIMER</div>
-    <div style="font-size:11px;color:#6b7280;line-height:1.5">AI research only — not financial advice. Short-term trading carries significant risk. Always do your own research before investing.</div>
-  </div>
-  <div class="th"><div class="tc">${(marketData?.stocks||[]).length} opportunities · £1k budget</div>
-    <button class="actbtn" onclick="loadMarkets()">↻ Refresh</button></div>`;
+  if(!marketLoaded){el.innerHTML=`<div class="cw"><div class="ci">📈</div><div class="ct">Short-Term Opportunities</div><div class="cs">Budget: £1,000 per position · UK & US stocks<br>⚠️ Research only — not financial advice</div><button class="gbtn" onclick="loadMarkets()">Get Today's Opportunities</button></div>`;return;}
+  let h=`<div class="card red" style="margin-bottom:14px"><div style="font-size:10px;color:#ef4444;font-weight:700;margin-bottom:4px">⚠️ DISCLAIMER</div><div style="font-size:11px;color:#6b7280;line-height:1.5">AI research only — not financial advice.</div></div>
+  <div class="th"><div class="tc">${(marketData?.stocks||[]).length} opportunities · £1k budget</div><button class="actbtn" onclick="loadMarkets()">↻ Refresh</button></div>`;
   (marketData?.stocks||[]).forEach(s=>{
-    h+=`<div class="scard">
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-        <div><div class="sticker">${s.ticker}</div><div class="sname">${s.name}</div></div>
-        <div style="text-align:right"><div class="sprice">${s.price}</div><div class="schg ${s.direction==="up"?"up":"dn"}">${s.change}</div></div>
-      </div>
-      <div class="sthesis">${s.thesis}</div>
-      <div style="font-size:11px;color:#6b7280;margin-bottom:6px">
-        <strong style="color:#94a3b8">Entry:</strong> ${s.entry} &nbsp;·&nbsp;
-        <strong style="color:#94a3b8">Target:</strong> ${s.target} &nbsp;·&nbsp;
-        <strong style="color:#94a3b8">Stop:</strong> ${s.stop}
-      </div>
-      <div class="smeta">
-        <span class="stag ${s.signal}">${s.signal}</span>
-        <span class="stag risk">Risk: ${s.risk}</span>
-        <span class="stag watch">${s.horizon}</span>
-      </div></div>`;
+    h+=`<div class="scard"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><div><div class="sticker">${s.ticker}</div><div class="sname">${s.name}</div></div><div style="text-align:right"><div class="sprice">${s.price}</div><div class="schg ${s.direction==="up"?"up":"dn"}">${s.change}</div></div></div>
+    <div class="sthesis">${s.thesis}</div>
+    <div style="font-size:11px;color:#6b7280;margin-bottom:6px"><strong style="color:#94a3b8">Entry:</strong> ${s.entry} · <strong style="color:#94a3b8">Target:</strong> ${s.target} · <strong style="color:#94a3b8">Stop:</strong> ${s.stop}</div>
+    <div class="smeta"><span class="stag ${s.signal}">${s.signal}</span><span class="stag risk">Risk: ${s.risk}</span><span class="stag watch">${s.horizon}</span></div></div>`;
   });
   if(marketData?.summary)h+=`<div class="card"><div class="clabel">Commentary</div><div style="font-size:13px;color:#94a3b8;line-height:1.6">${marketData.summary}</div></div>`;
   el.innerHTML=h;
 }
-
 function rGospel(){
   const el=document.getElementById("tab-gospel");
   const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   if(gospelLoading){el.innerHTML=lhtml("✝️","Finding today's passage...");return;}
-  if(!gospelLoaded){
-    el.innerHTML=`<div class="cw"><div class="ci">✝️</div><div class="ct">Daily Gospel Devotional</div>
-      <div class="cs">A passage from Matthew, Mark, Luke or John — chosen for ${DAYS[dow()]}</div>
-      <button class="gbtn" onclick="loadGospel()">Get Today's Passage</button></div>`;return;
-  }
+  if(!gospelLoaded){el.innerHTML=`<div class="cw"><div class="ci">✝️</div><div class="ct">Daily Gospel Devotional</div><div class="cs">A passage from Matthew, Mark, Luke or John — chosen for ${DAYS[dow()]}</div><button class="gbtn" onclick="loadGospel()">Get Today's Passage</button></div>`;return;}
   if(!gospelData){el.innerHTML=`<div class="es">Unable to load — try again</div><div style="text-align:center;margin-top:16px"><button class="gbtn" onclick="gospelLoaded=false;loadGospel()">Try Again</button></div>`;return;}
-  el.innerHTML=`
-    <div class="gcard"><div class="gref">📖 ${gospelData.reference}</div>
-      <div class="gverse">"${gospelData.verse}"</div></div>
-    <div class="card amber"><div class="clabel">Reflection</div>
-      <div style="font-size:13px;color:#e8e8f0;line-height:1.7">${gospelData.reflection}</div></div>
-    <div class="card purple"><div class="clabel">Prayer</div>
-      <div style="font-size:13px;color:#94a3b8;line-height:1.7;font-style:italic">${gospelData.prayer}</div></div>
-    <button class="rbtn" onclick="gospelLoaded=false;gospelData=null;loadGospel()">↻ New Passage</button>`;
+  el.innerHTML=`<div class="gcard"><div class="gref">📖 ${gospelData.reference}</div><div class="gverse">"${gospelData.verse}"</div></div>
+  <div class="card amber"><div class="clabel">Reflection</div><div style="font-size:13px;color:#e8e8f0;line-height:1.7">${gospelData.reflection}</div></div>
+  <div class="card purple"><div class="clabel">Prayer</div><div style="font-size:13px;color:#94a3b8;line-height:1.7;font-style:italic">${gospelData.prayer}</div></div>
+  <button class="rbtn" onclick="gospelLoaded=false;gospelData=null;loadGospel()">↻ New Passage</button>`;
 }
-
 function rBriefing(){
   const el=document.getElementById("tab-briefing");
   if(briefingLoading){el.innerHTML=lhtml("⚡","Preparing your briefing...");return;}
-  if(!briefingLoaded){
-    el.innerHTML=`<div class="cw"><div class="ci">☀️</div><div class="ct">Morning Briefing</div>
-      <div class="cs">Your complete daily briefing — training, peptides, tasks, priorities and insights.</div>
-      <button class="gbtn" onclick="loadBriefing()">Generate Briefing</button></div>`;return;
-  }
-  el.innerHTML=`<div class="otext">${briefingText}</div>
-    <button class="rbtn" onclick="briefingLoaded=false;briefingText='';loadBriefing()">↻ Regenerate</button>`;
+  if(!briefingLoaded){el.innerHTML=`<div class="cw"><div class="ci">☀️</div><div class="ct">Morning Briefing</div><div class="cs">Your complete daily briefing — training, peptides, tasks, priorities and insights.</div><button class="gbtn" onclick="loadBriefing()">Generate Briefing</button></div>`;return;}
+  el.innerHTML=`<div class="otext">${briefingText}</div><button class="rbtn" onclick="briefingLoaded=false;briefingText='';loadBriefing()">↻ Regenerate</button>`;
 }
-
 function rSettings(){
   document.getElementById("tab-settings").innerHTML=`
-    <div class="banner">
-      <div style="font-size:32px;margin-bottom:10px">✅</div>
-      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">App is configured</div>
-      <div style="font-size:12px;color:#94a3b8;line-height:1.5">Your Gemini API key is stored securely on Vercel's server — not in the browser.</div>
-    </div>
-    <div class="ssec">
-      <div class="ssl">Tasks</div>
-      <button class="dbtn" onclick="if(confirm('Reset all tasks?')){tasks=[...DEFAULT_TASKS];save();renderAll();}">🗑️ Reset Tasks to Default</button>
-    </div>
-    <div style="font-size:10px;color:#374151;text-align:center;margin-top:20px;line-height:1.8">
-      Benjamin Achampong · Command Centre v4.1<br>
-      Leiach Electrical Contractors Ltd<br>
-      Powered by Google Gemini · Secured by Vercel Functions
-    </div>`;
+  <div class="banner"><div style="font-size:32px;margin-bottom:10px">✅</div>
+    <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">App is configured</div>
+    <div style="font-size:12px;color:#94a3b8;line-height:1.5">Gemini API key secured on Vercel. Outlook connected via Microsoft Graph.</div></div>
+  <div style="margin-bottom:24px"><div style="font-size:9px;letter-spacing:2px;color:#6b7280;text-transform:uppercase;margin-bottom:10px;font-weight:600">Tasks</div>
+    <button class="dbtn" onclick="if(confirm('Reset all tasks?')){tasks=[...DEFAULT_TASKS];save();renderAll();}">🗑️ Reset Tasks to Default</button></div>
+  <div style="font-size:10px;color:#374151;text-align:center;margin-top:20px;line-height:1.8">Benjamin Achampong · Command Centre v4.2<br>Leiach Electrical Contractors Ltd<br>Powered by Google Gemini · Secured by Vercel</div>`;
 }
-
 function rHeader(){
   const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -458,21 +350,17 @@ function rHeader(){
   document.getElementById("hdate").textContent=`${DAYS[t.getDay()]} ${t.getDate()} ${MONTHS[t.getMonth()]} ${t.getFullYear()}`;
   document.getElementById("cbadge").innerHTML=`Week <span>${cweek()}</span>/8 · Day <span>${cday()}</span>`;
   const od=OD();
-  document.getElementById("abar").innerHTML=od.length
-    ?`<div class="abar">⚠️ <strong>${od.length} overdue task${od.length>1?"s":""}</strong> — needs attention</div>`:"";
+  document.getElementById("abar").innerHTML=od.length?`<div class="abar">⚠️ <strong>${od.length} overdue task${od.length>1?"s":""}</strong> — needs attention</div>`:"";
   document.getElementById("pb").style.width=`${Math.min(100,(cday()/CYCLE_DAYS)*100)}%`;
   document.getElementById("ttab").textContent=`Tasks${OD().length?` (${OD().length}⚠️)`:""}`;
 }
-
 function lhtml(icon,msg){return `<div class="lc"><div class="li">${icon}</div><div class="lt">${msg}</div></div>`;}
 function renderAll(){rHeader();rToday();rTasks();rEmails();rMarkets();rGospel();rBriefing();rSettings();}
-
 function go(name){
   curTab=name;
   TABS.forEach(t=>{document.getElementById(`tab-${t}`).style.display=t===name?"block":"none";});
   document.querySelectorAll(".tbtn").forEach((b,i)=>{b.classList.toggle("active",TABS[i]===name);});
 }
-
 function tick(id){
   const t=tasks.find(t=>t.id===id);if(!t)return;
   completing=id;renderAll();
@@ -486,145 +374,72 @@ function addTask(){
   tasks.push({id:Date.now(),title,detail:"",due,cat:"general",done:false});
   save();showAdd=false;renderAll();
 }
-
 function editD(i){draftStates[i].editing=true;rEmails();setTimeout(()=>document.getElementById(`de-${i}`)?.focus(),100);}
 function saveD(i){const el=document.getElementById(`de-${i}`);if(el)draftStates[i].draft=el.value;draftStates[i].editing=false;rEmails();}
 function cancelD(i){draftStates[i].editing=false;rEmails();}
-
 function connectOutlook(){window.location.href='/api/auth-login';}
 function disconnectOutlook(){
   outlookToken=null;outlookTokenExpiry=null;emails=[];emailsLoaded=false;
   try{localStorage.removeItem("ben_outlook_token");localStorage.removeItem("ben_outlook_expiry");}catch{}
   rEmails();
 }
-
 async function scanEmails(){
   if(!outlookToken){connectOutlook();return;}
   emailsLoading=true;emailsLoaded=false;draftStates={};rEmails();
   try{
-    const res=await fetch("/api/emails",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({access_token:outlookToken})
-    });
+    const res=await fetch("/api/emails",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({access_token:outlookToken})});
     if(res.status===401){disconnectOutlook();return;}
     const data=await res.json();
-    if(data.error){console.error(data.error);emails=[];emailsLoaded=true;}
-    else{emails=data.emails||[];emailsLoaded=true;}
+    emails=data.error?[]:data.emails||[];emailsLoaded=true;
   }catch(e){console.error(e);emails=[];emailsLoaded=true;}
   emailsLoading=false;rEmails();
 }
-
 async function draftReply(i){
   draftStates[i]={loading:true};rEmails();
   const e=emails[i];
-  const prompt=`Draft a professional email reply from Benjamin Achampong, Managing Director of Leiach Electrical Contractors Ltd.
-
-Email from: ${e.from}
-Subject: ${e.subject}
-Content: ${e.preview}
-
-Write a friendly, professional reply in UK English. Warm but businesslike. Sign off:
-Kind regards,
-Benjamin Achampong
-Managing Director
-Leiach Electrical Contractors Ltd
-
-Write ONLY the email body. No subject line. No preamble.`;
-  try{
-    const text=await ai(prompt);
-    draftStates[i]={draft:text.trim(),loading:false,editing:false,emailId:e.id};
-  }catch(err){draftStates[i]={draft:"Unable to draft — please try again.",loading:false};}
+  const prompt=`Draft a professional email reply from Benjamin Achampong, Managing Director of Leiach Electrical Contractors Ltd.\n\nEmail from: ${e.from}\nSubject: ${e.subject}\nContent: ${e.preview}\n\nWrite a friendly, professional reply in UK English. Warm but businesslike. Sign off:\nKind regards,\nBenjamin Achampong\nManaging Director\nLeiach Electrical Contractors Ltd\n\nWrite ONLY the email body. No subject line. No preamble.`;
+  try{const text=await ai(prompt);draftStates[i]={draft:text.trim(),loading:false,editing:false,emailId:e.id};}
+  catch(err){draftStates[i]={draft:"Unable to draft — please try again.",loading:false};}
   rEmails();
 }
-
 async function sendReply(i){
-  const ds=draftStates[i];
-  if(!ds?.draft||!outlookToken)return;
+  const ds=draftStates[i];if(!ds?.draft||!outlookToken)return;
   const e=emails[i];
   try{
-    const res=await fetch("/api/send-email",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        access_token:outlookToken,
-        reply_to_id:e.id,
-        body:ds.draft
-      })
-    });
+    const res=await fetch("/api/send-email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({access_token:outlookToken,reply_to_id:e.id,body:ds.draft})});
     const data=await res.json();
-    if(data.success){draftStates[i].sent=true;}
-    else{alert("Failed to send: "+(data.error||"Unknown error"));}
-  }catch(err){alert("Error sending email: "+err.message);}
+    if(data.success)draftStates[i].sent=true;
+    else alert("Failed to send: "+(data.error||"Unknown error"));
+  }catch(err){alert("Error: "+err.message);}
   rEmails();
 }
-
 async function loadMarkets(){
   marketLoading=true;marketLoaded=false;renderAll();
   const t=new Date();
-  const prompt=`Financial research. Date: ${t.toLocaleDateString("en-GB")}. Short-term stock opportunities, £1,000 budget, mix UK and US stocks.
-
-Return ONLY valid JSON:
-{"stocks":[{"ticker":"AAPL","name":"Apple Inc","price":"$185","change":"+2.3%","direction":"up","thesis":"2-3 sentence thesis","entry":"$184-186","target":"$195","stop":"$178","signal":"buy","risk":"Medium","horizon":"1-2 weeks"}],"summary":"2-3 sentence market commentary"}
-
-4 stocks. direction: up or down. signal: buy or watch. Research only, not financial advice.`;
-  try{
-    const text=await ai(prompt);
-    marketData=parseJSON(text);marketLoaded=true;
-    try{localStorage.setItem("ben_m",JSON.stringify(marketData));localStorage.setItem("ben_md",new Date().toDateString());}catch{}
-  }catch(e){console.error(e);marketData={stocks:[],summary:"Unable to load. Please try again."};marketLoaded=true;}
+  const prompt=`Financial research. Date: ${t.toLocaleDateString("en-GB")}. Short-term stock opportunities, £1,000 budget, mix UK and US stocks.\n\nReturn ONLY valid JSON:\n{"stocks":[{"ticker":"AAPL","name":"Apple Inc","price":"$185","change":"+2.3%","direction":"up","thesis":"2-3 sentence thesis","entry":"$184-186","target":"$195","stop":"$178","signal":"buy","risk":"Medium","horizon":"1-2 weeks"}],"summary":"2-3 sentence market commentary"}\n\n4 stocks. direction: up or down. signal: buy or watch. Research only, not financial advice.`;
+  try{const text=await ai(prompt);marketData=parseJSON(text);marketLoaded=true;try{localStorage.setItem("ben_m",JSON.stringify(marketData));localStorage.setItem("ben_md",new Date().toDateString());}catch{}}
+  catch(e){console.error(e);marketData={stocks:[],summary:"Unable to load. Please try again."};marketLoaded=true;}
   marketLoading=false;rMarkets();
 }
-
 async function loadGospel(){
   gospelLoading=true;gospelLoaded=false;rGospel();
   const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const t=new Date();
-  const prompt=`Choose a meaningful passage from Matthew, Mark, Luke or John for ${DAYS[t.getDay()]} morning.
-
-Benjamin is a 44-year-old Christian man — MD of Leiach Electrical Contractors, British Army veteran, Brazilian jiu jitsu purple belt, striving to be his best in business, faith and fitness.
-
-Return ONLY valid JSON:
-{"reference":"Matthew 5:14-16","verse":"Full passage text here","reflection":"3-4 sentences applying this directly to Benjamin's day. Speak to him personally. UK English.","prayer":"3-4 sentence personal prayer. First person. Heartfelt. UK English."}`;
-  try{
-    const text=await ai(prompt);
-    gospelData=parseJSON(text);gospelLoaded=true;
-    try{localStorage.setItem("ben_g",JSON.stringify(gospelData));localStorage.setItem("ben_gd",new Date().toDateString());}catch{}
-  }catch(e){console.error(e);gospelData=null;gospelLoaded=false;}
+  const prompt=`Choose a meaningful passage from Matthew, Mark, Luke or John for ${DAYS[t.getDay()]} morning.\n\nBenjamin is a 44-year-old Christian man — MD of Leiach Electrical Contractors, British Army veteran, Brazilian jiu jitsu purple belt, striving to be his best in business, faith and fitness.\n\nReturn ONLY valid JSON:\n{"reference":"Matthew 5:14-16","verse":"Full passage text here","reflection":"3-4 sentences applying this directly to Benjamin's day. Speak to him personally. UK English.","prayer":"3-4 sentence personal prayer. First person. Heartfelt. UK English."}`;
+  try{const text=await ai(prompt);gospelData=parseJSON(text);gospelLoaded=true;try{localStorage.setItem("ben_g",JSON.stringify(gospelData));localStorage.setItem("ben_gd",new Date().toDateString());}catch{}}
+  catch(e){console.error(e);gospelData=null;gospelLoaded=false;}
   gospelLoading=false;rGospel();
 }
-
 async function loadBriefing(){
   briefingLoading=true;briefingLoaded=false;rBriefing();
   const od=OD(),td=TD(),up=UP(),pp=peps(),tr=TR[dow()];
   const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const t=new Date();
-  const prompt=`You are Benjamin Achampong's personal command centre assistant.
-
-ABOUT BENJAMIN:
-- 44 years old, MD & Commercial Director of Leiach Electrical Contractors Ltd
-- JIB Gold Card electrician, NICEIC qualified supervisor
-- Purple belt Brazilian jiu jitsu, British Army veteran, golfer, padel player, Christian
-- Week ${cweek()} Day ${cday()} of 8-week peptide cycle (MOTS-c, GHK-Cu, NAD+)
-- Goal: visible abs and peak fitness at 44
-
-TODAY: ${DAYS[t.getDay()]} ${t.toLocaleDateString("en-GB")}
-TRAINING: ${tr.emoji} ${tr.label} — ${tr.sub}
-PEPTIDES: MOTS-c ${pp.motsc} | GHK-Cu ${pp.ghkcu} | NAD+ ${pp.nad}
-NOTE: ${pp.note}
-
-OVERDUE (${od.length}): ${od.length?od.map(x=>`${x.title} (${dod(x.due)}d overdue)`).join(", "):"None"}
-TODAY (${td.length}): ${td.length?td.map(x=>x.title).join(", "):"None"}
-UPCOMING: ${up.length?up.slice(0,5).map(x=>`${x.title} due ${fd(x.due)}`).join(", "):"None"}
-
-Write Benjamin's morning briefing. ONE powerful motivating opening line. Then: peptide reminder, training session, flag overdue tasks clearly, today's priorities in order. Close with one sharp insight. UK English. Max 230 words. Trusted straight-talking PA tone.`;
-  try{
-    briefingText=await ai(prompt);briefingLoaded=true;
-    try{localStorage.setItem("ben_b",briefingText);localStorage.setItem("ben_bd",new Date().toDateString());}catch{}
-  }catch(e){console.error(e);briefingText=`Error: ${e.message}`;briefingLoaded=true;}
+  const prompt=`You are Benjamin Achampong's personal command centre assistant.\n\nABOUT BENJAMIN:\n- 44 years old, MD & Commercial Director of Leiach Electrical Contractors Ltd\n- JIB Gold Card electrician, NICEIC qualified supervisor\n- Purple belt Brazilian jiu jitsu, British Army veteran, golfer, padel player, Christian\n- Week ${cweek()} Day ${cday()} of 8-week peptide cycle (MOTS-c, GHK-Cu, NAD+)\n- Goal: visible abs and peak fitness at 44\n\nTODAY: ${DAYS[t.getDay()]} ${t.toLocaleDateString("en-GB")}\nTRAINING: ${tr.emoji} ${tr.label} — ${tr.sub}\nPEPTIDES: MOTS-c ${pp.motsc} | GHK-Cu ${pp.ghkcu} | NAD+ ${pp.nad}\nNOTE: ${pp.note}\n\nOVERDUE (${od.length}): ${od.length?od.map(x=>`${x.title} (${dod(x.due)}d overdue)`).join(", "):"None"}\nTODAY (${td.length}): ${td.length?td.map(x=>x.title).join(", "):"None"}\nUPCOMING: ${up.length?up.slice(0,5).map(x=>`${x.title} due ${fd(x.due)}`).join(", "):"None"}\n\nWrite Benjamin's morning briefing. ONE powerful motivating opening line. Then: peptide reminder, training session, flag overdue tasks clearly, today's priorities in order. Close with one sharp insight. UK English. Max 230 words. Trusted straight-talking PA tone.`;
+  try{briefingText=await ai(prompt);briefingLoaded=true;try{localStorage.setItem("ben_b",briefingText);localStorage.setItem("ben_bd",new Date().toDateString());}catch{}}
+  catch(e){console.error(e);briefingText=`Error: ${e.message}`;briefingLoaded=true;}
   briefingLoading=false;rBriefing();
 }
-
 load();renderAll();
 </script>
 </body>
