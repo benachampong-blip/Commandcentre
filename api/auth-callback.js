@@ -23,13 +23,15 @@ export default async function handler(req, res) {
       }
     );
     const tokens = await tokenResponse.json();
-    if (tokens.error) return res.redirect('/?auth_error=' + encodeURIComponent(tokens.error_description || tokens.error));
-    const params = new URLSearchParams({
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token || '',
-      expires_in: tokens.expires_in || 3600
-    });
-    res.redirect(`/?outlook_auth=success&${params.toString()}`);
+    if (tokens.error) {
+      return res.redirect('/?auth_error=' + encodeURIComponent(tokens.error_description || tokens.error));
+    }
+    // Store token in a cookie instead of URL param (tokens are too long for URLs)
+    res.setHeader('Set-Cookie', [
+      `outlook_token=${tokens.access_token}; Path=/; Max-Age=${tokens.expires_in || 3600}; SameSite=Lax`,
+      `outlook_expiry=${Date.now() + ((tokens.expires_in || 3600) * 1000)}; Path=/; Max-Age=${tokens.expires_in || 3600}; SameSite=Lax`
+    ]);
+    res.redirect('/?outlook_auth=success');
   } catch (err) {
     res.redirect('/?auth_error=' + encodeURIComponent(err.message));
   }
