@@ -220,7 +220,7 @@ function dod(due){return Math.floor((new Date()-new Date(due))/86400000);}
 
 // PROXY CALL — goes through Netlify function, no CORS issues
 async function ai(prompt){
-  const res=await fetch("/.netlify/functions/ai",{
+  const res=await fetch("/api/ai",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({prompt})
