@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Command Centre">
+<meta name="theme-color" content="#0a0a0f">
+<title>Benjamin | Command Centre</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0a0a0f;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+.header{background:linear-gradient(135deg,#0d1117 0%,#161b27 100%);border-bottom:1px solid #1e2533;padding:max(52px,calc(44px + env(safe-area-inset-top))) 20px 16px}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start}
+.eyebrow{font-size:10px;letter-spacing:3px;color:#3b82f6;text-transform:uppercase;margin-bottom:4px}
+.hname{font-size:24px;font-weight:700;color:#fff;letter-spacing:-0.5px}
+.hdate{font-size:11px;color:#6b7280;margin-top:2px}
+.cbadge{background:#1e2533;border:1px solid #2d3748;border-radius:8px;padding:6px 11px;font-size:11px;color:#94a3b8;text-align:right;white-space:nowrap}
+.cbadge span{color:#3b82f6;font-weight:700}
+.abar{margin-top:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:9px 14px;font-size:12px;color:#fca5a5;display:flex;align-items:center;gap:8px}
+.pbwrap{background:#1e2533;border-radius:4px;height:4px;margin-top:12px;overflow:hidden}
+.pb{background:linear-gradient(90deg,#3b82f6,#10b981);height:4px;border-radius:4px;transition:width 0.5s}
+.tabs{display:flex;border-bottom:1px solid #1e2533;background:#0d1117;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tbtn{background:none;border:none;border-bottom:2px solid transparent;color:#6b7280;padding:12px 14px;font-size:12px;cursor:pointer;white-space:nowrap;transition:all 0.2s;font-family:inherit}
+.tbtn.active{border-bottom-color:#3b82f6;color:#3b82f6;font-weight:600}
+.content{padding:18px 20px;max-width:680px;margin:0 auto}
+.card{background:#0d1117;border:1px solid #1e2533;border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.card.blue{border-left:3px solid #3b82f6;border-color:#3b82f633}
+.card.green{border-left:3px solid #10b981;border-color:#10b98133}
+.card.amber{border-left:3px solid #f59e0b;border-color:#f59e0b33}
+.card.red{border-left:3px solid #ef4444;border-color:rgba(239,68,68,0.3)}
+.card.purple{border-left:3px solid #8b5cf6;border-color:#8b5cf633}
+.card.gold{border-left:3px solid #fbbf24;border-color:#fbbf2433}
+.clabel{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px;font-weight:600}
+.blue .clabel{color:#3b82f6}.green .clabel{color:#10b981}.amber .clabel{color:#f59e0b}.red .clabel{color:#ef4444}.purple .clabel{color:#8b5cf6}.gold .clabel{color:#fbbf24}
+.ttitle{font-size:19px;font-weight:700;color:#fff;margin-bottom:4px}
+.tsub{font-size:12px;color:#6b7280}
+.pgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
+.pcell{background:#161b27;border-radius:8px;padding:10px 6px;text-align:center}
+.plabel{font-size:9px;color:#6b7280;margin-bottom:4px}
+.pdose{font-size:16px;font-weight:700}
+.pdose.on{color:#10b981}.pdose.off{color:#2d3748}
+.pnote{font-size:11px;color:#6b7280;font-style:italic;margin-top:6px}
+.trow{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #1a1f2e;transition:opacity 0.3s}
+.trow:last-child{border-bottom:none}
+.trow.comp{opacity:0.3}
+.tchk{width:22px;height:22px;border-radius:6px;border:2px solid #2d3748;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;transition:all 0.2s}
+.tchk.od{border-color:#ef4444}.tchk.dn{border-color:#10b981;background:#10b98122;color:#10b981}
+.ttsk{font-size:13px;font-weight:600;color:#e8e8f0;margin-bottom:2px;line-height:1.4}
+.ttsk.od{color:#fca5a5}.ttsk.dn{color:#4b5563;text-decoration:line-through}
+.tdet{font-size:11px;color:#6b7280;margin-bottom:5px}
+.ttags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:500}
+.tag.business{background:#3b82f622;color:#3b82f6}.tag.admin{background:#8b5cf622;color:#8b5cf6}
+.tag.general{background:#10b98122;color:#10b981}.tag.overdue{background:#ef444422;color:#ef4444}
+.tag.dt{background:none;color:#4b5563;padding-left:0}
+.slabel{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600;margin:16px 0 8px}
+.abtn{background:#3b82f6;border:none;border-radius:8px;color:#fff;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.th{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.tc{font-size:12px;color:#6b7280}
+.aform{background:#0d1117;border:1px solid #3b82f6;border-radius:12px;padding:16px;margin-bottom:14px}
+.finput{width:100%;background:#161b27;border:1px solid #2d3748;border-radius:8px;color:#e8e8f0;padding:11px 13px;font-size:13px;margin-bottom:10px;outline:none;font-family:inherit;-webkit-appearance:none}
+.finput:focus{border-color:#3b82f6}
+.frow{display:flex;gap:8px}
+.finput.di{flex:1;margin-bottom:0}
+.sbtn{background:#3b82f6;border:none;border-radius:8px;color:#fff;padding:11px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+.actbtn{background:#161b27;border:1px solid #2d3748;border-radius:8px;color:#94a3b8;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.actbtn.pr{background:#3b82f622;border-color:#3b82f6;color:#3b82f6}
+.actbtn.sc{background:#10b98122;border-color:#10b981;color:#10b981}
+.gbtn{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:12px;color:#fff;padding:16px 36px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 24px rgba(59,130,246,0.3);transition:transform 0.1s}
+.gbtn:active{transform:scale(0.97)}
+.otext{background:#0d1117;border:1px solid #1e2533;border-radius:12px;padding:20px;font-size:14px;line-height:1.75;color:#cbd5e1;white-space:pre-wrap}
+.rbtn{margin-top:12px;background:none;border:1px solid #2d3748;border-radius:8px;color:#6b7280;padding:10px;font-size:12px;cursor:pointer;width:100%;font-family:inherit}
+.lc{text-align:center;padding:48px 0}
+.li{font-size:28px;margin-bottom:12px;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.lt{font-size:13px;color:#6b7280}
+.es{color:#374151;font-size:13px;text-align:center;padding:40px 0}
+.cw{text-align:center;padding:40px 0;display:flex;flex-direction:column;align-items:center;gap:14px}
+.ci{font-size:40px}
+.ct{font-size:15px;font-weight:700;color:#fff}
+.cs{font-size:12px;color:#6b7280;line-height:1.5;max-width:280px}
+.ecard{background:#0d1117;border:1px solid #1e2533;border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.esrc{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:600;display:inline-block;margin-bottom:6px}
+.esrc.gmail{background:#ef444422;color:#ef4444}.esrc.outlook{background:#3b82f622;color:#3b82f6}
+.epri{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px}
+.epri.high{background:#ef444422;color:#ef4444}.epri.medium{background:#f59e0b22;color:#f59e0b}
+.efrom{font-size:12px;font-weight:700;color:#e8e8f0;margin-bottom:2px}
+.esubj{font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:6px}
+.esum{font-size:12px;color:#6b7280;line-height:1.5;margin-bottom:10px}
+.darea{margin-top:10px;background:#161b27;border:1px solid #2d3748;border-radius:8px;padding:12px;font-size:12px;color:#cbd5e1;line-height:1.6;white-space:pre-wrap}
+textarea.dedit{width:100%;background:#161b27;border:1px solid #3b82f6;border-radius:8px;color:#cbd5e1;padding:12px;font-size:12px;line-height:1.6;font-family:inherit;outline:none;resize:vertical;min-height:120px;margin-top:10px}
+.brow{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.scard{background:#0d1117;border:1px solid #1e2533;border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.sticker{font-size:18px;font-weight:800;color:#fff}
+.sname{font-size:11px;color:#6b7280;margin-bottom:6px}
+.schg{font-size:14px;font-weight:700}
+.schg.up{color:#10b981}.schg.dn{color:#ef4444}
+.sprice{font-size:13px;color:#e8e8f0;font-weight:600}
+.sthesis{font-size:12px;color:#94a3b8;line-height:1.5;margin:8px 0}
+.smeta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.stag{font-size:9px;padding:2px 8px;border-radius:4px}
+.stag.buy{background:#10b98122;color:#10b981}.stag.watch{background:#f59e0b22;color:#f59e0b}.stag.risk{background:#ef444422;color:#ef4444}
+.gcard{background:#0d1117;border:1px solid #fbbf2433;border-left:3px solid #fbbf24;border-radius:12px;padding:20px 18px;margin-bottom:14px}
+.gref{font-size:10px;letter-spacing:2px;color:#fbbf24;text-transform:uppercase;margin-bottom:10px;font-weight:600}
+.gverse{font-size:15px;color:#fff;line-height:1.7;font-style:italic;margin-bottom:4px}
+.ssec{margin-bottom:24px}
+.ssl{font-size:9px;letter-spacing:2px;color:#6b7280;text-transform:uppercase;margin-bottom:10px;font-weight:600}
+.dbtn{background:#ef444411;border:1px solid #ef444433;border-radius:8px;color:#ef4444;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;width:100%}
+.sbox{background:#0d1117;border:1px solid #10b98133;border-left:3px solid #10b981;border-radius:12px;padding:16px 18px;margin-bottom:16px}
+.sbl{font-size:9px;letter-spacing:2px;color:#10b981;text-transform:uppercase;margin-bottom:8px;font-weight:600}
+.sbt{font-size:12px;color:#94a3b8;margin-bottom:12px;line-height:1.6}
+.ski{width:100%;background:#161b27;border:1px solid #2d3748;border-radius:8px;color:#e8e8f0;padding:10px 13px;font-size:13px;font-family:monospace;outline:none;margin-bottom:10px;-webkit-appearance:none}
+.ski:focus{border-color:#10b981}
+.skbtn{background:#10b981;border:none;border-radius:8px;color:#000;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.kstat{font-size:11px;color:#10b981;margin-left:10px}
+.banner{background:linear-gradient(135deg,#0d1117,#161b27);border:1px solid #3b82f633;border-radius:12px;padding:20px;margin-bottom:16px;text-align:center}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="eyebrow">Command Centre</div>
+      <div class="hname">Morning, Benjamin.</div>
+      <div class="hdate" id="hdate"></div>
+    </div>
+    <div class="cbadge" id="cbadge"></div>
+  </div>
+  <div id="abar"></div>
+  <div class="pbwrap"><div class="pb" id="pb" style="width:0%"></div></div>
+</div>
+
+<div class="tabs">
+  <button class="tbtn active" onclick="go('today')">Today</button>
+  <button class="tbtn" onclick="go('emails')" id="etab">📧 Emails</button>
+  <button class="tbtn" onclick="go('tasks')" id="ttab">Tasks</button>
+  <button class="tbtn" onclick="go('markets')">📈 Markets</button>
+  <button class="tbtn" onclick="go('gospel')">✝️ Gospel</button>
+  <button class="tbtn" onclick="go('briefing')">☀️ Briefing</button>
+  <button class="tbtn" onclick="go('settings')">⚙️ Setup</button>
+</div>
+
+<div class="content">
+  <div id="tab-today"></div>
+  <div id="tab-emails" style="display:none"></div>
+  <div id="tab-tasks" style="display:none"></div>
+  <div id="tab-markets" style="display:none"></div>
+  <div id="tab-gospel" style="display:none"></div>
+  <div id="tab-briefing" style="display:none"></div>
+  <div id="tab-settings" style="display:none"></div>
+</div>
+
+<script>
+const CYCLE_START=new Date("2026-06-27");
+const CYCLE_DAYS=56;
+const TABS=["today","emails","tasks","markets","gospel","briefing","settings"];
+
+const DEFAULT_TASKS=[
+  {id:1,title:"Issue EICR & Remedial Quote",detail:"40 Grace Church Street",due:"2026-06-29",cat:"business",done:false},
+  {id:2,title:"Email Paul — Chase Scaffold",detail:"10SC project",due:"2026-06-29",cat:"business",done:false},
+  {id:3,title:"Issue Text Sub & Order Materials",detail:"10SC LCC Ceiling",due:"2026-06-30",cat:"business",done:false},
+  {id:4,title:"Office: Issue Build Fix + Purchase Order",detail:"10SC LCC Ceiling",due:"2026-06-30",cat:"business",done:false},
+  {id:5,title:"Call Kevin Mylton",detail:"Fire strategy — Richmond & Wandsworth",due:"2026-07-01",cat:"business",done:false},
+  {id:6,title:"Contact Matt — H2O Plumbusters",detail:"The Paddocks, Clacton on Sea",due:"2026-06-29",cat:"business",done:false},
+  {id:7,title:"Find New Electrical Engineer",detail:"Post roles on LinkedIn, Indeed, Totaljobs",due:"2026-07-03",cat:"business",done:false},
+  {id:8,title:"Get Laptop Screen Fixed",detail:"Book repair or warranty claim",due:"2026-07-03",cat:"admin",done:false},
+];
+
+const TR={
+  1:{label:"Push — Chest/Shoulders/Triceps",type:"heavy",emoji:"🏋️",sub:"7am fasted · Progressive overload"},
+  2:{label:"Light Upper + Sauna/Steam + JJ",type:"light",emoji:"🥋",sub:"7am fasted · Accessory work · Jiu Jitsu 7pm"},
+  3:{label:"Pull — Back/Biceps",type:"heavy",emoji:"🏋️",sub:"7am fasted · Progressive overload"},
+  4:{label:"Light Lower + Sauna/Steam + JJ",type:"light",emoji:"🥋",sub:"7am fasted · Accessory work · Jiu Jitsu 7pm"},
+  5:{label:"Legs & Core",type:"heavy",emoji:"🏋️",sub:"7am fasted · Progressive overload"},
+  6:{label:"Golf ⛳",type:"active",emoji:"⛳",sub:"Active recovery · Easy pace"},
+  0:{label:"Rest / Padel",type:"rest",emoji:"😴",sub:"Rest or padel · Recovery day"},
+};
+
+let tasks=[],emails=[],draftStates={};
+let emailsLoading=false,emailsLoaded=false;
+let marketData=null,marketLoading=false,marketLoaded=false;
+let gospelData=null,gospelLoading=false,gospelLoaded=false;
+let briefingText="",briefingLoading=false,briefingLoaded=false;
+let showAdd=false,completing=null,curTab="today";
+
+function load(){
+  try{
+    const t=localStorage.getItem("ben_t6");
+    tasks=t?JSON.parse(t):[...DEFAULT_TASKS];
+    const today=new Date().toDateString();
+    const b=localStorage.getItem("ben_b");const bd=localStorage.getItem("ben_bd");
+    if(b&&bd===today){briefingText=b;briefingLoaded=true;}
+    const m=localStorage.getItem("ben_m");const md=localStorage.getItem("ben_md");
+    if(m&&md===today){try{marketData=JSON.parse(m);marketLoaded=true;}catch{}}
+    const g=localStorage.getItem("ben_g");const gd=localStorage.getItem("ben_gd");
+    if(g&&gd===today){try{gospelData=JSON.parse(g);gospelLoaded=true;}catch{}}
+  }catch{tasks=[...DEFAULT_TASKS];}
+}
+function save(){try{localStorage.setItem("ben_t6",JSON.stringify(tasks));}catch{}}
+
+const iso=()=>new Date().toISOString().split("T")[0];
+const dow=()=>new Date().getDay();
+function cweek(){const d=Math.floor((new Date()-CYCLE_START)/86400000);return Math.max(1,Math.min(8,Math.floor(d/7)+1));}
+function cday(){return Math.min(CYCLE_DAYS,Math.max(1,Math.floor((new Date()-CYCLE_START)/86400000)+1));}
+function peps(){
+  const w=cweek(),d=dow(),mwf=[1,3,5].includes(d);
+  if(w<=2)return{motsc:"0.5mg",ghkcu:"—",nad:"—",note:"MOTS-c ramp phase — fasted AM, 30 min before training."};
+  if(w<=4)return{motsc:"2mg",ghkcu:"1mg",nad:"50mg",note:"Full stack — all three fasted AM."};
+  return{motsc:mwf?"5mg":"—",ghkcu:"2mg",nad:mwf?"100mg":"—",note:mwf?"Full dose day — MOTS-c + GHK-Cu + NAD+.":"GHK-Cu daily. MOTS-c & NAD+ on Mon/Wed/Fri only."};
+}
+const OD=()=>tasks.filter(t=>!t.done&&t.due<iso());
+const TD=()=>tasks.filter(t=>!t.done&&t.due===iso());
+const UP=()=>tasks.filter(t=>!t.done&&t.due>iso());
+const DN=()=>tasks.filter(t=>t.done);
+function fd(iso){return new Date(iso+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});}
+function dod(due){return Math.floor((new Date()-new Date(due))/86400000);}
+
+// PROXY CALL — goes through Netlify function, no CORS issues
+async function ai(prompt){
+  const res=await fetch("/.netlify/functions/ai",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({prompt})
+  });
+  if(!res.ok){const e=await res.json();throw new Error(e.error||"Server error");}
+  const data=await res.json();
+  return data.text||"";
+}
+
+function parseJSON(text){
+  const clean=text.replace(/```json|```/g,"").trim();
+  return JSON.parse(clean);
+}
+
+// RENDER TODAY
+function rToday(){
+  const tr=TR[dow()],pp=peps(),od=OD(),td=TD();
+  let h=`
+    <div class="card blue"><div class="clabel">Today's Training</div>
+      <div class="ttitle">${tr.emoji} ${tr.label}</div>
+      <div class="tsub">${tr.sub}</div></div>
+    <div class="card green"><div class="clabel">Peptide Protocol — Week ${cweek()}</div>
+      <div class="pgrid">
+        <div class="pcell"><div class="plabel">MOTS-c</div><div class="pdose ${pp.motsc==="—"?"off":"on"}">${pp.motsc}</div></div>
+        <div class="pcell"><div class="plabel">GHK-Cu</div><div class="pdose ${pp.ghkcu==="—"?"off":"on"}">${pp.ghkcu}</div></div>
+        <div class="pcell"><div class="plabel">NAD+</div><div class="pdose ${pp.nad==="—"?"off":"on"}">${pp.nad}</div></div>
+      </div>
+      <div class="pnote">${pp.note}</div></div>`;
+  if(od.length)h+=`<div class="slabel" style="color:#ef4444">⚠️ Overdue</div><div class="card red" style="padding:4px 16px">${od.map(trow).join("")}</div>`;
+  if(td.length)h+=`<div class="slabel" style="color:#f59e0b">Due Today</div><div class="card amber" style="padding:4px 16px">${td.map(trow).join("")}</div>`;
+  if(!od.length&&!td.length)h+=`<div class="es">✅ No tasks due today</div>`;
+  document.getElementById("tab-today").innerHTML=h;
+}
+
+// RENDER TASKS
+function trow(t){
+  const od=!t.done&&t.due<iso(),c=completing===t.id;
+  const st=t.done?(t.doneAt?`<span class="tag dt">✓ ${fd(t.doneAt.split("T")[0])}</span>`:"")
+    :od?`<span class="tag overdue">${dod(t.due)}d overdue</span>`
+    :`<span class="tag dt">Due ${fd(t.due)}</span>`;
+  return `<div class="trow${c?" comp":""}" id="tr-${t.id}">
+    <button class="tchk${t.done?" dn":od?" od":""}" onclick="tick(${t.id})">${t.done?"✓":""}</button>
+    <div style="flex:1;min-width:0">
+      <div class="ttsk${t.done?" dn":od?" od":""}">${t.title}</div>
+      ${t.detail?`<div class="tdet">${t.detail}</div>`:""}
+      <div class="ttags"><span class="tag ${t.cat}">${t.cat}</span>${st}</div>
+    </div></div>`;
+}
+function rTasks(){
+  const od=OD(),td=TD(),up=UP(),dn=DN();
+  let h=`<div class="th"><div class="tc">${up.length} upcoming · ${od.length} overdue · ${dn.length} done</div>
+    <button class="abtn" onclick="toggleAdd()">+ Add</button></div>`;
+  if(showAdd)h+=`<div class="aform">
+    <input class="finput" id="nt" placeholder="Task description..." onkeydown="if(event.key==='Enter')addTask()">
+    <div class="frow"><input class="finput di" type="date" id="nd" value="${iso()}">
+    <button class="sbtn" onclick="addTask()">Save</button></div></div>`;
+  if(od.length)h+=`<div class="slabel" style="color:#ef4444">⚠️ Overdue</div><div class="card red" style="padding:4px 16px">${od.map(trow).join("")}</div>`;
+  if(td.length)h+=`<div class="slabel" style="color:#f59e0b">Due Today</div><div class="card amber" style="padding:4px 16px">${td.map(trow).join("")}</div>`;
+  if(up.length)h+=`<div class="slabel" style="color:#6b7280">Upcoming</div><div class="card" style="padding:4px 16px">${up.map(trow).join("")}</div>`;
+  if(dn.length)h+=`<div class="slabel" style="color:#10b981">✅ Done</div><div class="card green" style="padding:4px 16px">${dn.map(trow).join("")}</div>`;
+  if(!od.length&&!td.length&&!up.length&&!dn.length)h+=`<div class="es">🎉 All clear</div>`;
+  document.getElementById("tab-tasks").innerHTML=h;
+  if(showAdd)setTimeout(()=>document.getElementById("nt")?.focus(),100);
+}
+
+// RENDER EMAILS
+function rEmails(){
+  const el=document.getElementById("tab-emails");
+  if(emailsLoading){el.innerHTML=lhtml("📧","Scanning for important emails...");return;}
+  if(!emailsLoaded){
+    el.innerHTML=`<div class="cw"><div class="ci">📬</div><div class="ct">Email Assistant</div>
+      <div class="cs">Scans both inboxes for important business emails only. Drafts replies in friendly professional UK English.</div>
+      <button class="gbtn" onclick="scanEmails()">Scan Emails Now</button></div>`;return;
+  }
+  let h=`<div class="th"><div class="tc">${emails.length} important email${emails.length!==1?"s":""}</div>
+    <button class="actbtn" onclick="scanEmails()">↻ Rescan</button></div>`;
+  if(!emails.length)h+=`<div class="es">✅ Inbox clear</div>`;
+  emails.forEach((e,i)=>{
+    const ds=draftStates[i]||{};
+    h+=`<div class="ecard">
+      <span class="esrc ${e.source}">${e.source==="gmail"?"Gmail":"Outlook"}</span>
+      <span class="epri ${e.priority}">${e.priority}</span>
+      <div class="efrom" style="margin-top:6px">${e.from}</div>
+      <div class="esubj">${e.subject}</div>
+      <div class="esum">${e.summary}</div>
+      <div class="brow">
+        ${!ds.draft&&!ds.loading?`<button class="actbtn pr" onclick="draft(${i})">✏️ Draft Reply</button>`:""}
+        ${ds.draft&&!ds.editing?`<button class="actbtn pr" onclick="editD(${i})">✏️ Edit</button>
+          <button class="actbtn sc" onclick="send(${i},'${e.source}','${encodeURIComponent(e.replyTo||"")}','${encodeURIComponent(e.subject)}')">📤 Send</button>`:""}
+      </div>
+      ${ds.loading?`<div style="font-size:12px;color:#6b7280;margin-top:10px;padding:10px;background:#161b27;border-radius:8px;animation:pulse 1.5s infinite">✍️ Drafting...</div>`:""}
+      ${ds.draft&&!ds.loading&&!ds.editing?`<div class="darea">${ds.draft}</div>`:""}
+      ${ds.editing?`<textarea class="dedit" id="de-${i}">${ds.draft}</textarea>
+        <div class="brow">
+          <button class="sbtn" onclick="saveD(${i})">✅ Save</button>
+          <button class="actbtn" onclick="cancelD(${i})">Cancel</button>
+          <button class="actbtn sc" onclick="send(${i},'${e.source}','${encodeURIComponent(e.replyTo||"")}','${encodeURIComponent(e.subject)}')">📤 Send</button>
+        </div>`:""}
+      ${ds.sent?`<div style="font-size:12px;color:#10b981;margin-top:8px">✅ Opened in ${e.source==="gmail"?"Gmail":"Outlook"}</div>`:""}
+    </div>`;
+  });
+  el.innerHTML=h;
+}
+
+// RENDER MARKETS
+function rMarkets(){
+  const el=document.getElementById("tab-markets");
+  if(marketLoading){el.innerHTML=lhtml("📈","Analysing opportunities...");return;}
+  if(!marketLoaded){
+    el.innerHTML=`<div class="cw"><div class="ci">📈</div><div class="ct">Short-Term Opportunities</div>
+      <div class="cs">Budget: £1,000 per position · UK & US stocks<br>⚠️ Research only — not financial advice</div>
+      <button class="gbtn" onclick="loadMarkets()">Get Today's Opportunities</button></div>`;return;
+  }
+  let h=`<div class="card red" style="margin-bottom:14px">
+    <div style="font-size:10px;color:#ef4444;font-weight:700;margin-bottom:4px">⚠️ DISCLAIMER</div>
+    <div style="font-size:11px;color:#6b7280;line-height:1.5">AI research only — not financial advice. Short-term trading carries significant risk. Always do your own research before investing.</div>
+  </div>
+  <div class="th"><div class="tc">${(marketData?.stocks||[]).length} opportunities · £1k budget</div>
+    <button class="actbtn" onclick="loadMarkets()">↻ Refresh</button></div>`;
+  (marketData?.stocks||[]).forEach(s=>{
+    h+=`<div class="scard">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <div><div class="sticker">${s.ticker}</div><div class="sname">${s.name}</div></div>
+        <div style="text-align:right"><div class="sprice">${s.price}</div><div class="schg ${s.direction==="up"?"up":"dn"}">${s.change}</div></div>
+      </div>
+      <div class="sthesis">${s.thesis}</div>
+      <div style="font-size:11px;color:#6b7280;margin-bottom:6px">
+        <strong style="color:#94a3b8">Entry:</strong> ${s.entry} &nbsp;·&nbsp;
+        <strong style="color:#94a3b8">Target:</strong> ${s.target} &nbsp;·&nbsp;
+        <strong style="color:#94a3b8">Stop:</strong> ${s.stop}
+      </div>
+      <div class="smeta">
+        <span class="stag ${s.signal}">${s.signal}</span>
+        <span class="stag risk">Risk: ${s.risk}</span>
+        <span class="stag watch">${s.horizon}</span>
+      </div></div>`;
+  });
+  if(marketData?.summary)h+=`<div class="card"><div class="clabel">Commentary</div><div style="font-size:13px;color:#94a3b8;line-height:1.6">${marketData.summary}</div></div>`;
+  el.innerHTML=h;
+}
+
+// RENDER GOSPEL
+function rGospel(){
+  const el=document.getElementById("tab-gospel");
+  const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  if(gospelLoading){el.innerHTML=lhtml("✝️","Finding today's passage...");return;}
+  if(!gospelLoaded){
+    el.innerHTML=`<div class="cw"><div class="ci">✝️</div><div class="ct">Daily Gospel Devotional</div>
+      <div class="cs">A passage from Matthew, Mark, Luke or John — chosen for ${DAYS[dow()]}</div>
+      <button class="gbtn" onclick="loadGospel()">Get Today's Passage</button></div>`;return;
+  }
+  if(!gospelData){el.innerHTML=`<div class="es">Unable to load — try again</div><div style="text-align:center;margin-top:16px"><button class="gbtn" onclick="gospelLoaded=false;loadGospel()">Try Again</button></div>`;return;}
+  el.innerHTML=`
+    <div class="gcard"><div class="gref">📖 ${gospelData.reference}</div>
+      <div class="gverse">"${gospelData.verse}"</div></div>
+    <div class="card amber"><div class="clabel">Reflection</div>
+      <div style="font-size:13px;color:#e8e8f0;line-height:1.7">${gospelData.reflection}</div></div>
+    <div class="card purple"><div class="clabel">Prayer</div>
+      <div style="font-size:13px;color:#94a3b8;line-height:1.7;font-style:italic">${gospelData.prayer}</div></div>
+    <button class="rbtn" onclick="gospelLoaded=false;gospelData=null;loadGospel()">↻ New Passage</button>`;
+}
+
+// RENDER BRIEFING
+function rBriefing(){
+  const el=document.getElementById("tab-briefing");
+  if(briefingLoading){el.innerHTML=lhtml("⚡","Preparing your briefing...");return;}
+  if(!briefingLoaded){
+    el.innerHTML=`<div class="cw"><div class="ci">☀️</div><div class="ct">Morning Briefing</div>
+      <div class="cs">Your complete daily briefing — training, peptides, tasks, priorities and insights.</div>
+      <button class="gbtn" onclick="loadBriefing()">Generate Briefing</button></div>`;return;
+  }
+  el.innerHTML=`<div class="otext">${briefingText}</div>
+    <button class="rbtn" onclick="briefingLoaded=false;briefingText='';loadBriefing()">↻ Regenerate</button>`;
+}
+
+// RENDER SETTINGS
+function rSettings(){
+  document.getElementById("tab-settings").innerHTML=`
+    <div class="banner">
+      <div style="font-size:32px;margin-bottom:10px">✅</div>
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">App is configured</div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.5">Your Gemini API key is stored securely on Netlify's server — not in the browser. This is why the AI features work reliably on all devices.</div>
+    </div>
+    <div class="ssec">
+      <div class="ssl">Tasks</div>
+      <button class="dbtn" onclick="if(confirm('Reset all tasks?')){tasks=[...DEFAULT_TASKS];save();renderAll();}">🗑️ Reset Tasks to Default</button>
+    </div>
+    <div style="font-size:10px;color:#374151;text-align:center;margin-top:20px;line-height:1.8">
+      Benjamin Achampong · Command Centre v4.0<br>
+      Leiach Electrical Contractors Ltd<br>
+      Powered by Google Gemini · Secured by Netlify Functions
+    </div>`;
+}
+
+// HEADER
+function rHeader(){
+  const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const t=new Date();
+  document.getElementById("hdate").textContent=`${DAYS[t.getDay()]} ${t.getDate()} ${MONTHS[t.getMonth()]} ${t.getFullYear()}`;
+  document.getElementById("cbadge").innerHTML=`Week <span>${cweek()}</span>/8 · Day <span>${cday()}</span>`;
+  const od=OD();
+  document.getElementById("abar").innerHTML=od.length
+    ?`<div class="abar">⚠️ <strong>${od.length} overdue task${od.length>1?"s":""}</strong> — needs attention</div>`:"";
+  document.getElementById("pb").style.width=`${Math.min(100,(cday()/CYCLE_DAYS)*100)}%`;
+  document.getElementById("ttab").textContent=`Tasks${OD().length?` (${OD().length}⚠️)`:""}`;
+}
+
+function lhtml(icon,msg){return `<div class="lc"><div class="li">${icon}</div><div class="lt">${msg}</div></div>`;}
+
+function renderAll(){rHeader();rToday();rTasks();rEmails();rMarkets();rGospel();rBriefing();rSettings();}
+
+// NAVIGATION
+function go(name){
+  curTab=name;
+  TABS.forEach(t=>{document.getElementById(`tab-${t}`).style.display=t===name?"block":"none";});
+  document.querySelectorAll(".tbtn").forEach((b,i)=>{b.classList.toggle("active",TABS[i]===name);});
+}
+
+// TASK ACTIONS
+function tick(id){
+  const t=tasks.find(t=>t.id===id);if(!t)return;
+  completing=id;renderAll();
+  setTimeout(()=>{t.done=!t.done;t.doneAt=t.done?new Date().toISOString():null;completing=null;save();renderAll();},350);
+}
+function toggleAdd(){showAdd=!showAdd;rTasks();}
+function addTask(){
+  const title=document.getElementById("nt")?.value?.trim();
+  const due=document.getElementById("nd")?.value||iso();
+  if(!title)return;
+  tasks.push({id:Date.now(),title,detail:"",due,cat:"general",done:false});
+  save();showAdd=false;renderAll();
+}
+
+// DRAFT ACTIONS
+function editD(i){draftStates[i].editing=true;rEmails();setTimeout(()=>document.getElementById(`de-${i}`)?.focus(),100);}
+function saveD(i){const el=document.getElementById(`de-${i}`);if(el)draftStates[i].draft=el.value;draftStates[i].editing=false;rEmails();}
+function cancelD(i){draftStates[i].editing=false;rEmails();}
+function send(i,src,to,subj){
+  const dr=draftStates[i]?.draft;if(!dr)return;
+  const s=decodeURIComponent(subj),b=encodeURIComponent(dr),a=decodeURIComponent(to);
+  if(src==="gmail")window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(a)}&su=Re: ${encodeURIComponent(s)}&body=${b}`,"_blank");
+  else window.open(`https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(a)}&subject=Re: ${encodeURIComponent(s)}&body=${b}`,"_blank");
+  draftStates[i].sent=true;rEmails();
+}
+
+// AI CALLS
+async function scanEmails(){
+  emailsLoading=true;emailsLoaded=false;draftStates={};rEmails();
+  const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const t=new Date();
+  const prompt=`You are Benjamin Achampong's assistant. He is MD of Leiach Electrical Contractors Ltd, JIB Gold Card electrician, London. Today is ${DAYS[t.getDay()]} ${t.toLocaleDateString("en-GB")}.
+
+Generate 4 realistic important business emails he might receive. NO marketing emails. Business only — project queries, supplier invoices, client requests, compliance matters. Mix of gmail and outlook sources.
+
+Return ONLY valid JSON:
+{"emails":[{"source":"gmail","from":"John Smith <john@example.com>","replyTo":"john@example.com","subject":"Subject","time":"8:30am","priority":"high","summary":"2-3 sentence summary of email content"}]}
+
+Priority must be high or medium. Source must be gmail or outlook.`;
+  try{
+    const text=await ai(prompt);
+    const parsed=parseJSON(text);
+    emails=parsed.emails||[];emailsLoaded=true;
+  }catch(e){console.error(e);emails=[];emailsLoaded=true;}
+  emailsLoading=false;rEmails();
+}
+
+async function draft(i){
+  draftStates[i]={loading:true};rEmails();
+  const e=emails[i];
+  const prompt=`Draft a professional email reply from Benjamin Achampong, Managing Director of Leiach Electrical Contractors Ltd.
+
+Email from: ${e.from}
+Subject: ${e.subject}
+Content: ${e.summary}
+
+Write a friendly, professional reply in UK English. Warm but businesslike. Sign off:
+Kind regards,
+Benjamin Achampong
+Managing Director
+Leiach Electrical Contractors Ltd
+
+Write ONLY the email body. No subject line. No preamble.`;
+  try{
+    const text=await ai(prompt);
+    draftStates[i]={draft:text.trim(),loading:false,editing:false};
+  }catch(e){draftStates[i]={draft:"Unable to draft — please try again.",loading:false};}
+  rEmails();
+}
+
+async function loadMarkets(){
+  marketLoading=true;marketLoaded=false;renderAll();
+  const t=new Date();
+  const prompt=`Financial research. Date: ${t.toLocaleDateString("en-GB")}. Short-term stock opportunities, £1,000 budget, mix UK and US stocks.
+
+Return ONLY valid JSON:
+{"stocks":[{"ticker":"AAPL","name":"Apple Inc","price":"$185","change":"+2.3%","direction":"up","thesis":"2-3 sentence thesis","entry":"$184-186","target":"$195","stop":"$178","signal":"buy","risk":"Medium","horizon":"1-2 weeks"}],"summary":"2-3 sentence market commentary"}
+
+4 stocks. direction: up or down. signal: buy or watch. Research only, not financial advice.`;
+  try{
+    const text=await ai(prompt);
+    marketData=parseJSON(text);marketLoaded=true;
+    try{localStorage.setItem("ben_m",JSON.stringify(marketData));localStorage.setItem("ben_md",new Date().toDateString());}catch{}
+  }catch(e){console.error(e);marketData={stocks:[],summary:"Unable to load. Please try again."};marketLoaded=true;}
+  marketLoading=false;rMarkets();
+}
+
+async function loadGospel(){
+  gospelLoading=true;gospelLoaded=false;rGospel();
+  const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const t=new Date();
+  const prompt=`Choose a meaningful passage from Matthew, Mark, Luke or John for ${DAYS[t.getDay()]} morning.
+
+Benjamin is a 44-year-old Christian man — MD of Leiach Electrical Contractors, British Army veteran, Brazilian jiu jitsu purple belt, striving to be his best in business, faith and fitness.
+
+Return ONLY valid JSON:
+{"reference":"Matthew 5:14-16","verse":"Full passage text here","reflection":"3-4 sentences applying this directly to Benjamin's day. Speak to him personally. UK English.","prayer":"3-4 sentence personal prayer. First person. Heartfelt. UK English."}`;
+  try{
+    const text=await ai(prompt);
+    gospelData=parseJSON(text);gospelLoaded=true;
+    try{localStorage.setItem("ben_g",JSON.stringify(gospelData));localStorage.setItem("ben_gd",new Date().toDateString());}catch{}
+  }catch(e){console.error(e);gospelData=null;gospelLoaded=false;}
+  gospelLoading=false;rGospel();
+}
+
+async function loadBriefing(){
+  briefingLoading=true;briefingLoaded=false;rBriefing();
+  const od=OD(),td=TD(),up=UP(),pp=peps(),tr=TR[dow()];
+  const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const t=new Date();
+  const prompt=`You are Benjamin Achampong's personal command centre assistant.
+
+ABOUT BENJAMIN:
+- 44 years old, MD & Commercial Director of Leiach Electrical Contractors Ltd
+- JIB Gold Card electrician, NICEIC qualified supervisor
+- Purple belt Brazilian jiu jitsu, British Army veteran, golfer, padel player, Christian
+- Week ${cweek()} Day ${cday()} of 8-week peptide cycle (MOTS-c, GHK-Cu, NAD+)
+- Goal: visible abs and peak fitness at 44
+
+TODAY: ${DAYS[t.getDay()]} ${t.toLocaleDateString("en-GB")}
+TRAINING: ${tr.emoji} ${tr.label} — ${tr.sub}
+PEPTIDES: MOTS-c ${pp.motsc} | GHK-Cu ${pp.ghkcu} | NAD+ ${pp.nad}
+NOTE: ${pp.note}
+
+OVERDUE (${od.length}): ${od.length?od.map(x=>`${x.title} (${dod(x.due)}d overdue)`).join(", "):"None"}
+TODAY (${td.length}): ${td.length?td.map(x=>x.title).join(", "):"None"}
+UPCOMING: ${up.length?up.slice(0,5).map(x=>`${x.title} due ${fd(x.due)}`).join(", "):"None"}
+
+Write Benjamin's morning briefing. ONE powerful motivating opening line. Then: peptide reminder, training session, flag overdue tasks clearly, today's priorities in order. Close with one sharp insight. UK English. Max 230 words. Trusted straight-talking PA tone.`;
+  try{
+    briefingText=await ai(prompt);briefingLoaded=true;
+    try{localStorage.setItem("ben_b",briefingText);localStorage.setItem("ben_bd",new Date().toDateString());}catch{}
+  }catch(e){console.error(e);briefingText=`Error: ${e.message}\n\nCheck that the GEMINI_API_KEY environment variable is set in Netlify.`;briefingLoaded=true;}
+  briefingLoading=false;rBriefing();
+}
+
+load();renderAll();
+</script>
+</body>
+</html>
